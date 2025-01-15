@@ -17,7 +17,7 @@ public class ServerTCP {
 
     public static void main(String[] args) throws IOException {
 
-        messages = readFile("msgs.txt").toArray();
+        messages = readFile("sockets/msgs.txt").toArray();
         messagesCount = Integer.parseInt(messages[0].toString());
         messages = Arrays.copyOfRange(messages, 1, messagesCount + 1);
 
@@ -28,7 +28,7 @@ public class ServerTCP {
     public static Stream<String> readFile(String diretorio) throws IOException {
 
         Path path = Paths.get(diretorio);
-            return Files.lines(path);
+        return Files.lines(path);
     }
 
     private static void connection() {
@@ -88,6 +88,14 @@ public class ServerTCP {
                             message = "Error: Something went wrong";
                             e.printStackTrace();
                         }
+
+                        if (request[1].equals("y")) {
+                            textoAEnviar = message.getBytes();
+                            bufferSaida.write(textoAEnviar);
+                            bufferSaida.flush();
+                            break;
+                        }
+
                     } else {
                         message = "Error: Invalid option";
                     }
@@ -96,9 +104,6 @@ public class ServerTCP {
                     bufferSaida.write(textoAEnviar);
                     bufferSaida.flush();
 
-                    if (request[1].equals("y")) {
-                        break;
-                    }
                 }
 
                 bufferSaida.close();

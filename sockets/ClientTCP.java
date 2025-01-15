@@ -9,7 +9,12 @@ public class ClientTCP {
     public static void main(String[] args) {
         try {
             // Conecta ao servidor na porta 4444
-            Socket socket = new Socket(args[0], 4444);
+            Socket socket;
+            if (args.length == 1) {
+                socket = new Socket(args[0], 4444);
+            } else {
+                socket = new Socket("localhost", 4444);
+            }
             System.out.println("Connected to the server!");
 
             // Cria buffers de entrada e saída
@@ -40,7 +45,7 @@ public class ClientTCP {
                 System.out.println("Server replied: " + resposta);
 
                 // Se a mensagem for "y", encerra a conexão
-                if (mensagem.split(" ")[1].equals("y")) {
+                if (mensagem.split(" ").length == 2 && mensagem.split(" ")[1].equals("y")) {
                     break;
                 }
             }
