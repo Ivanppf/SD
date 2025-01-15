@@ -60,8 +60,9 @@ public class ServerTCP {
                  */
                 OutputStream bufferSaida = tomadaCliente.getOutputStream();
                 InputStream bufferEntrada = tomadaCliente.getInputStream();
+                boolean isRunning = true;
 
-                while (true) {
+                while (isRunning) {
 
                     byte[] textoAEnviar = new byte[msgSize]; // verificar tamanho da mensagem antes de enviar
                     // tamanho de entrada 8 por se tratar apenas de números pequenos
@@ -73,7 +74,11 @@ public class ServerTCP {
 
                     if (request.length != 2) {
                         message = "Error: Wrong arguments";
-                    } else if (request[1].equals("n") || request[1].equals("y")) {
+
+                    } else if (!(request[1].equals("n") || request[1].equals("y"))) {
+                        message = "Error: Invalid option";
+
+                    } else {
                         try {
                             int posicao = Integer.parseInt(request[0]);
 
@@ -91,19 +96,9 @@ public class ServerTCP {
                         }
 
                         if (request[1].equals("y")) {
-                            if (message.getBytes().length > msgSize) {
-
-                                message = message.substring(0, 100);
-                            }
-
-                            textoAEnviar = message.getBytes();
-                            bufferSaida.write(textoAEnviar);
-                            bufferSaida.flush();
-                            break;
+                            isRunning = false;
                         }
 
-                    } else {
-                        message = "Error: Invalid option";
                     }
                     if (message.getBytes().length > msgSize) {
                         message = message.substring(0, 100);
