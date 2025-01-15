@@ -9,7 +9,7 @@ public class ClientTCP {
     public static void main(String[] args) {
         try {
             // Conecta ao servidor na porta 4444
-            Socket socket = new Socket("localhost", 4444);
+            Socket socket = new Socket(args[0], 4444);
             System.out.println("Connected to the server!");
 
             // Cria buffers de entrada e saída
