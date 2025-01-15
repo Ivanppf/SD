@@ -14,6 +14,7 @@ public class ServerTCP {
 
     private static Object[] messages;
     private static int messagesCount;
+    private static int msgSize = 100;
 
     public static void main(String[] args) throws IOException {
 
@@ -62,7 +63,7 @@ public class ServerTCP {
 
                 while (true) {
 
-                    byte[] textoAEnviar = new byte[100]; // verificar tamanho da mensagem antes de enviar
+                    byte[] textoAEnviar = new byte[msgSize]; // verificar tamanho da mensagem antes de enviar
                     // tamanho de entrada 8 por se tratar apenas de números pequenos
                     byte[] textoRecebido = new byte[16];
 
@@ -70,8 +71,8 @@ public class ServerTCP {
                     String[] request = new String(textoRecebido).trim().split(" ");
                     String message;
 
-                    if (request.length < 2) {
-                        message = "Error: Missing arguments";
+                    if (request.length != 2) {
+                        message = "Error: Wrong arguments";
                     } else if (request[1].equals("n") || request[1].equals("y")) {
                         try {
                             int posicao = Integer.parseInt(request[0]);
@@ -90,6 +91,11 @@ public class ServerTCP {
                         }
 
                         if (request[1].equals("y")) {
+                            if (message.getBytes().length > msgSize) {
+
+                                message = message.substring(0, 100);
+                            }
+
                             textoAEnviar = message.getBytes();
                             bufferSaida.write(textoAEnviar);
                             bufferSaida.flush();
@@ -99,7 +105,9 @@ public class ServerTCP {
                     } else {
                         message = "Error: Invalid option";
                     }
-
+                    if (message.getBytes().length > msgSize) {
+                        message = message.substring(0, 100);
+                    }
                     textoAEnviar = message.getBytes();
                     bufferSaida.write(textoAEnviar);
                     bufferSaida.flush();
