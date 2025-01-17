@@ -57,6 +57,7 @@ public class ServerTCP {
     // metodo para receber e tratar das requisicoes do cliente
     private static void servidor(Socket tomadaCliente, ServerSocket tomadaServidora) {
 
+        //inicia uma nova thread para permitir novas conexoes
         new Thread(() -> {
             try {
                 /*
