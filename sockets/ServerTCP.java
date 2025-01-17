@@ -18,6 +18,7 @@ public class ServerTCP {
 
     public static void main(String[] args) throws IOException {
 
+        // le a quantidade e as mensagens do arquivo msgs.txt e adiciona em um array
         messages = readFile("sockets/msgs.txt").toArray();
         messagesCount = Integer.parseInt(messages[0].toString());
         messages = Arrays.copyOfRange(messages, 1, messagesCount + 1);
@@ -26,12 +27,14 @@ public class ServerTCP {
 
     }
 
+    // metodo para ler mensagens de um arquivo
     public static Stream<String> readFile(String diretorio) throws IOException {
 
         Path path = Paths.get(diretorio);
         return Files.lines(path);
     }
 
+    // metodo responsavel pela conexao do cliente
     private static void connection() {
 
         try {
@@ -40,6 +43,7 @@ public class ServerTCP {
             System.out.println("Waiting for connections");
 
             while (true) {
+                // espera por um cliente e aceita e conexao
                 Socket tomadaCliente = tomadaServidora.accept();
                 System.out.println("Connected" + tomadaCliente.getInetAddress());
 
@@ -50,6 +54,7 @@ public class ServerTCP {
         }
     }
 
+    // metodo para receber e tratar das requisicoes do cliente
     private static void servidor(Socket tomadaCliente, ServerSocket tomadaServidora) {
 
         new Thread(() -> {
@@ -64,17 +69,19 @@ public class ServerTCP {
 
                 while (isRunning) {
 
-                    byte[] textoAEnviar = new byte[msgSize]; // verificar tamanho da mensagem antes de enviar
-                    // tamanho de entrada 8 por se tratar apenas de números pequenos
+                    byte[] textoAEnviar = new byte[msgSize];
                     byte[] textoRecebido = new byte[16];
 
                     bufferEntrada.read(textoRecebido);
+                    // recebe e separa a mensagem em um array
                     String[] request = new String(textoRecebido).trim().split(" ");
                     String message;
 
+                    // verifica o numero de argumentos recebidos
                     if (request.length != 2) {
                         message = "Error: Wrong arguments";
 
+                        // valida os argumentos recebidos
                     } else if (!(request[1].equals("n") || request[1].equals("y"))) {
                         message = "Error: Invalid option";
 
@@ -82,8 +89,11 @@ public class ServerTCP {
                         try {
                             int posicao = Integer.parseInt(request[0]);
 
+                            // valida o indice da mensagem recebida
                             if (posicao < 0 || posicao > messagesCount) {
                                 message = "Error: Invalid index! Available messages between 0 and " + (messagesCount);
+
+                                // envia uma mensagem aleatoria caso o indice for 0
                             } else if (posicao == 0) {
                                 int aleatorio = new Random().nextInt(messagesCount);
                                 message = "Message: " + messages[aleatorio].toString();
@@ -95,20 +105,25 @@ public class ServerTCP {
                             e.printStackTrace();
                         }
 
+                        // para o servidor se o argumento for y
                         if (request[1].equals("y")) {
                             isRunning = false;
                         }
 
                     }
+                    // corta a mensagem se esta ultrapassar o tamanho maximo
                     if (message.getBytes().length > msgSize) {
                         message = message.substring(0, 100);
                     }
+
+                    // envia a mensagem para o cliente
                     textoAEnviar = message.getBytes();
                     bufferSaida.write(textoAEnviar);
                     bufferSaida.flush();
 
                 }
 
+                // Fecha os streams e a conexão
                 bufferSaida.close();
                 bufferEntrada.close();
                 tomadaCliente.close();

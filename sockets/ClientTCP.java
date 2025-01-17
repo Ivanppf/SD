@@ -8,7 +8,11 @@ public class ClientTCP {
 
     public static void main(String[] args) {
         try {
-            // Conecta ao servidor na porta 4444
+            /*
+             * Conecta ao servidor na porta 4444
+             * o ip do servidor pode ser passado externamente, caso contrario,
+             * ira procurar o servidor no localhost
+             */
             Socket socket;
             if (args.length == 1) {
                 socket = new Socket(args[0], 4444);
