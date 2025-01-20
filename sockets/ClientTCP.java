@@ -22,46 +22,46 @@ public class ClientTCP {
             System.out.println("Connected to the server!");
 
             // Cria buffers de entrada e saída
-            OutputStream bufferSaida = socket.getOutputStream();
-            InputStream bufferEntrada = socket.getInputStream();
+            OutputStream outputBuffer = socket.getOutputStream();
+            InputStream inputBuffer = socket.getInputStream();
 
-            BufferedReader teclado = new BufferedReader(new InputStreamReader(System.in));
+            BufferedReader KBinput = new BufferedReader(new InputStreamReader(System.in));
 
             // Loop para enviar mensagens para o servidor
             while (true) {
                 System.out
                         .print("Type a number (0 for a random message) and y/n if you want to finish the connection: ");
-                String mensagem = teclado.readLine();
+                String textToSend = KBinput.readLine();
 
                 // Envia a mensagem para o servidor
-                bufferSaida.write(mensagem.getBytes());
-                bufferSaida.flush();
+                outputBuffer.write(textToSend.getBytes());
+                outputBuffer.flush();
 
                 // Recebe a resposta do servidor
-                byte[] respostaRecebida = new byte[100];
-                int bytesLidos = bufferEntrada.read(respostaRecebida);
-                if (bytesLidos == -1) {
+                byte[] serverMessage = new byte[100];
+                int bytesRead = inputBuffer.read(serverMessage);
+                if (bytesRead == -1) {
                     break;
                 }
 
                 // Converte a resposta para string e exibe
-                String resposta = new String(respostaRecebida, 0, bytesLidos).trim();
-                System.out.println("Server replied: " + resposta);
+                String textReceived = new String(serverMessage, 0, bytesRead).trim();
+                System.out.println("Server replied: " + textReceived);
 
                 // Se a mensagem for "y", encerra a conexão
-                if (mensagem.split(" ").length == 2 && mensagem.split(" ")[1].equals("y")) {
+                if (textToSend.split(" ").length == 2 && textToSend.split(" ")[1].equals("y")) {
                     break;
                 }
             }
 
             // Fecha os streams e a conexão
-            bufferSaida.close();
-            bufferEntrada.close();
+            outputBuffer.close();
+            inputBuffer.close();
             socket.close();
             System.out.println("Connection closed.");
 
         } catch (Exception e) {
-            System.out.println("Erro: " + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
         }
     }
 

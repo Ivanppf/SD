@@ -28,9 +28,9 @@ public class ServerTCP {
     }
 
     // metodo para ler mensagens de um arquivo
-    public static Stream<String> readFile(String strPatch) throws IOException {
+    public static Stream<String> readFile(String strPath) throws IOException {
 
-        Path path = Paths.get(strPatch);
+        Path path = Paths.get(strPath);
         return Files.lines(path);
     }
 
@@ -39,15 +39,15 @@ public class ServerTCP {
 
         try {
             // cria socket na porta 4444
-            ServerSocket tomadaServidora = new ServerSocket(4444);
+            ServerSocket serverSocket = new ServerSocket(4444);
             System.out.println("Waiting for connections");
 
             while (true) {
                 // espera por um cliente e aceita e conexao
-                Socket tomadaCliente = tomadaServidora.accept();
-                System.out.println("Connected" + tomadaCliente.getInetAddress());
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("Connected" + clientSocket.getInetAddress());
 
-                servidor(tomadaCliente, tomadaServidora);
+                server(clientSocket, serverSocket);
             }
         } catch (Exception e) {
             System.out.println(e);
@@ -55,7 +55,7 @@ public class ServerTCP {
     }
 
     // metodo para receber e tratar das requisicoes do cliente
-    private static void servidor(Socket tomadaCliente, ServerSocket tomadaServidora) {
+    private static void server(Socket clientSocket, ServerSocket serverSocket) {
 
         // inicia uma nova thread para permitir novas conexoes
         new Thread(() -> {
@@ -64,19 +64,18 @@ public class ServerTCP {
                  * cria dois buffers de array de bytes, um para enviar e
                  * outro para receber a conexao com o cliente
                  */
-                OutputStream bufferSaida = tomadaCliente.getOutputStream();
-                InputStream bufferEntrada = tomadaCliente.getInputStream();
+                OutputStream outputBuffer = clientSocket.getOutputStream();
+                InputStream inputBuffer = clientSocket.getInputStream();
                 boolean isRunning = true;
 
                 while (isRunning) {
-                    System.out.println("loop servidor");
 
-                    byte[] textoAEnviar = new byte[msgSize];
-                    byte[] textoRecebido = new byte[16];
+                    byte[] textToSend = new byte[msgSize];
+                    byte[] textReceived = new byte[16];
 
-                    bufferEntrada.read(textoRecebido);
+                    inputBuffer.read(textReceived);
                     // recebe e separa a mensagem em um array
-                    String[] request = new String(textoRecebido).trim().split(" ");
+                    String[] request = new String(textReceived).trim().split(" ");
                     String message;
 
                     // verifica o numero de argumentos recebidos
@@ -89,18 +88,18 @@ public class ServerTCP {
 
                     } else {
                         try {
-                            int posicao = Integer.parseInt(request[0]);
+                            int index = Integer.parseInt(request[0]);
 
                             // valida o indice da mensagem recebida
-                            if (posicao < 0 || posicao > messagesCount) {
+                            if (index < 0 || index > messagesCount) {
                                 message = "Error: Invalid index! Available messages between 0 and " + (messagesCount);
 
                                 // envia uma mensagem aleatoria caso o indice for 0
-                            } else if (posicao == 0) {
-                                int aleatorio = new Random().nextInt(messagesCount);
-                                message = "Message: " + messages[aleatorio].toString();
+                            } else if (index == 0) {
+                                int randomNum = new Random().nextInt(messagesCount);
+                                message = "Message: " + messages[randomNum].toString();
                             } else {
-                                message = "Message: " + messages[posicao - 1].toString();
+                                message = "Message: " + messages[index - 1].toString();
                             }
                         } catch (Exception e) {
                             message = "Error: Something went wrong";
@@ -109,7 +108,7 @@ public class ServerTCP {
 
                         // para o servidor se o argumento for y
                         if (request[1].equals("y")) {
-                            tomadaCliente.close();
+                            clientSocket.close();
                         }
 
                     }
@@ -119,17 +118,17 @@ public class ServerTCP {
                     }
 
                     // envia a mensagem para o cliente
-                    textoAEnviar = message.getBytes();
-                    bufferSaida.write(textoAEnviar);
-                    bufferSaida.flush();
+                    textToSend = message.getBytes();
+                    outputBuffer.write(textToSend);
+                    outputBuffer.flush();
 
                 }
 
                 // Fecha os streams e a conexão
-                bufferSaida.close();
-                bufferEntrada.close();
+                outputBuffer.close();
+                inputBuffer.close();
                 // tomadaCliente.close();
-                tomadaServidora.close();
+                serverSocket.close();
             } catch (Exception e) {
                 System.out.println(e);
             }
