@@ -28,9 +28,9 @@ public class ServerTCP {
     }
 
     // metodo para ler mensagens de um arquivo
-    public static Stream<String> readFile(String diretorio) throws IOException {
+    public static Stream<String> readFile(String strPatch) throws IOException {
 
-        Path path = Paths.get(diretorio);
+        Path path = Paths.get(strPatch);
         return Files.lines(path);
     }
 
@@ -57,7 +57,7 @@ public class ServerTCP {
     // metodo para receber e tratar das requisicoes do cliente
     private static void servidor(Socket tomadaCliente, ServerSocket tomadaServidora) {
 
-        //inicia uma nova thread para permitir novas conexoes
+        // inicia uma nova thread para permitir novas conexoes
         new Thread(() -> {
             try {
                 /*
@@ -69,6 +69,7 @@ public class ServerTCP {
                 boolean isRunning = true;
 
                 while (isRunning) {
+                    System.out.println("loop servidor");
 
                     byte[] textoAEnviar = new byte[msgSize];
                     byte[] textoRecebido = new byte[16];
@@ -108,7 +109,7 @@ public class ServerTCP {
 
                         // para o servidor se o argumento for y
                         if (request[1].equals("y")) {
-                            isRunning = false;
+                            tomadaCliente.close();
                         }
 
                     }
@@ -127,7 +128,7 @@ public class ServerTCP {
                 // Fecha os streams e a conexão
                 bufferSaida.close();
                 bufferEntrada.close();
-                tomadaCliente.close();
+                // tomadaCliente.close();
                 tomadaServidora.close();
             } catch (Exception e) {
                 System.out.println(e);
