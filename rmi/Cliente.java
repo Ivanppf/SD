@@ -42,16 +42,16 @@ public class Cliente {
 		BufferedReader KBinput = new BufferedReader(new InputStreamReader(System.in));
 		Usuario usuario = new Usuario();
 
-
-		try {
-			
-			System.out.print("Digite seu nome: ");
-			usuario.setNome(KBinput.readLine());
-			usuario.setEnderecoIp("localhost");
-			servidor.cadastrar(usuario);
-			
-		} catch (IOException e) {
-			e.printStackTrace();
+		boolean continua = true;
+		while (continua) {
+			try {
+				System.out.print("Digite seu nome: ");
+				usuario.setNome(KBinput.readLine());
+				servidor.cadastrar(usuario);
+				continua = false;
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+			}
 		}
 
 		Thread serverThread = new Thread(() -> {
@@ -80,12 +80,15 @@ public class Cliente {
 					List<Usuario> usuarios = servidor.listarUsuarios();
 					usuarios.forEach(System.out::println);
 				} else if (escolha == 2) {
-					OutputStream outputBuffer = clientSocket.getOutputStream();
-
+					
 					while (true) {
 						System.out.print("Digite o nome do usuário: ");
 						String nomeUsuario = KBinput.readLine();
 						Usuario novoUsuario = servidor.buscarUsuario(nomeUsuario);
+
+						Socket socket = new Socket(novoUsuario.getEnderecoIp(), novoUsuario.getPorta());
+
+						OutputStream outputBuffer = socket.getOutputStream();
 						System.out.print("Digite a mensagem para enviar (ou 'sair' para encerrar):");
 						String message = KBinput.readLine();
 						if (message.equalsIgnoreCase("sair")) {
@@ -94,7 +97,6 @@ public class Cliente {
 						outputBuffer.write(message.getBytes());
 						outputBuffer.flush();
 					}
-					
 
 				} else if (escolha == 3) {
 					break;
@@ -112,18 +114,16 @@ public class Cliente {
 
 	private static void startServer(int porta) throws IOException {
 		ServerSocket serverSocket = new ServerSocket(porta);
-		System.out.println("Servidor iniciado. Aguardando mensagens...");
 		while (true) {
 			try {
-				Socket clientSocket = serverSocket.accept();
+				clientSocket = serverSocket.accept();
+				System.out.println("Conectado");
 				new Thread(new ClientHandler(clientSocket)).start();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
 	}
-
-
 
 	// Handler para tratar a recepção de mensagens
 	private static class ClientHandler implements Runnable {

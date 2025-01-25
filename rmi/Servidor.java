@@ -27,7 +27,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorRemoto {
 		return new Date();
 	}
 
-	public String cadastrar(Usuario u) {
+	public String cadastrar(Usuario u) throws RuntimeException {
 		if (buscarUsuario(u.getNome()) != null) {
 			throw new RuntimeException("Este nome de usuario ja foi cadastrado");
 		} else {
@@ -59,7 +59,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorRemoto {
 	}
 
 	public void conectarComUsuario(Usuario u, String nome) {
-		//u.setPorta(8080);
+		// u.setPorta(8080);
 
 	}
 
