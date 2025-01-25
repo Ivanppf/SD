@@ -56,9 +56,10 @@ public class Cliente {
 
 		Thread serverThread = new Thread(() -> {
 			try {
-				startServer(usuario.getPorta());
-			} catch (IOException e) {
-				e.printStackTrace();
+				Usuario u = servidor.buscarUsuario(usuario.getNome());
+				startServer(u.getPorta());
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
 			}
 		});
 		serverThread.start();
@@ -70,7 +71,8 @@ public class Cliente {
 				System.out.println("""
 						1 - Ver usuários online
 						2 - Conectar a um usuário
-						3 - Sair
+						3 - Enviar mensagem para grupo
+						4 - Sair
 						->
 						""");
 
@@ -80,16 +82,14 @@ public class Cliente {
 					List<Usuario> usuarios = servidor.listarUsuarios();
 					usuarios.forEach(System.out::println);
 				} else if (escolha == 2) {
-					
+					System.out.print("Digite o nome do usuário: ");
+					String nomeUsuario = KBinput.readLine();
+					Usuario novoUsuario = servidor.buscarUsuario(nomeUsuario);
+					Socket socket = new Socket(novoUsuario.getEnderecoIp(), novoUsuario.getPorta());
+					OutputStream outputBuffer = socket.getOutputStream();
+
 					while (true) {
-						System.out.print("Digite o nome do usuário: ");
-						String nomeUsuario = KBinput.readLine();
-						Usuario novoUsuario = servidor.buscarUsuario(nomeUsuario);
-
-						Socket socket = new Socket(novoUsuario.getEnderecoIp(), novoUsuario.getPorta());
-
-						OutputStream outputBuffer = socket.getOutputStream();
-						System.out.print("Digite a mensagem para enviar (ou 'sair' para encerrar):");
+						System.out.print("Digite a mensagem para enviar (ou 'sair' para encerrar): ");
 						String message = KBinput.readLine();
 						if (message.equalsIgnoreCase("sair")) {
 							break;
@@ -103,6 +103,7 @@ public class Cliente {
 				}
 
 			} catch (Exception e) {
+				// System.out.println(e.getMessage());
 				e.printStackTrace();
 			}
 		}
@@ -116,10 +117,9 @@ public class Cliente {
 		ServerSocket serverSocket = new ServerSocket(porta);
 		while (true) {
 			try {
-				clientSocket = serverSocket.accept();
-				System.out.println("Conectado");
+				Socket clientSocket = serverSocket.accept();
 				new Thread(new ClientHandler(clientSocket)).start();
-			} catch (IOException e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}

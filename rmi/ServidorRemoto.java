@@ -9,7 +9,7 @@ public interface ServidorRemoto extends Remote {
 
 	public Date dataDeHoje() throws RemoteException;
 
-	public String cadastrar(Usuario c) throws RemoteException;;
+	public Usuario cadastrar(Usuario c) throws RemoteException;;
 
 	public Usuario buscarUsuario(String email) throws RemoteException;;
 
