@@ -41,7 +41,7 @@ public class Cliente {
 		// escreve mensagem no servidor, chamando m�todo dele
 		// servidor.escreveMsg("Hello, fellows!!!!");
 		BufferedReader KBinput = new BufferedReader(new InputStreamReader(System.in));
-		 usuario = new Usuario();
+		usuario = new Usuario();
 
 		boolean continua = true;
 		while (continua) {
@@ -96,7 +96,7 @@ public class Cliente {
 						if (message.equalsIgnoreCase("sair")) {
 							break;
 						}
-						message =  + message
+						message = usuario.getNome() + ": " + message;
 						outputBuffer.write(message.getBytes());
 						outputBuffer.flush();
 					}
@@ -123,24 +123,18 @@ public class Cliente {
 				Socket clientSocket = serverSocket.accept();
 				InputStream inputBuffer = clientSocket.getInputStream();
 
-				// new Thread(new ClientHandler(clientSocket)).start();
 				new Thread(() -> {
+					// Handler para tratar a recepção de mensagens
 					try {
-						do {
-
+						while (true) {
 							// Recebe a resposta do servidor
 							byte[] serverMessage = new byte[100];
 							int bytesRead = inputBuffer.read(serverMessage);
-							System.out.println("loop recebimento mensagem");
-							// if (bytesRead == -1) {
-							// break;
-							// }
 
 							// Converte a resposta para string e exibe
 							String textReceived = new String(serverMessage, 0, bytesRead).trim();
-							System.out.println("Mensagem recebida: " + textReceived);
-
-						} while (true);
+							System.out.println(">> " + textReceived);
+						}
 
 					} catch (Exception e) {
 						System.out.println(e.getMessage());
@@ -148,33 +142,6 @@ public class Cliente {
 				}).start();
 			} catch (Exception e) {
 				e.printStackTrace();
-			}
-		}
-	}
-
-	// Handler para tratar a recepção de mensagens
-	private static class ClientHandler implements Runnable {
-		private Socket socket;
-
-		public ClientHandler(Socket socket) {
-			this.socket = socket;
-		}
-
-		@Override
-		public void run() {
-			try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
-				String message;
-				while ((message = in.readLine()) != null) {
-					System.out.println("Mensagem recebida: " + message);
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			} finally {
-				try {
-					socket.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
 			}
 		}
 	}
