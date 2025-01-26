@@ -89,7 +89,7 @@ public class Cliente {
 					OutputStream outputBuffer = socket.getOutputStream();
 
 					while (true) {
-						System.out.print("Digite a mensagem para enviar (ou 'sair' para encerrar): ");
+						System.out.println("Digite a mensagem para enviar (ou 'sair' para encerrar): ");
 						String message = KBinput.readLine();
 						if (message.equalsIgnoreCase("sair")) {
 							break;
@@ -98,7 +98,7 @@ public class Cliente {
 						outputBuffer.flush();
 					}
 
-				} else if (escolha == 3) {
+				} else if (escolha == 4) {
 					break;
 				}
 
@@ -118,7 +118,31 @@ public class Cliente {
 		while (true) {
 			try {
 				Socket clientSocket = serverSocket.accept();
-				new Thread(new ClientHandler(clientSocket)).start();
+				InputStream inputBuffer = clientSocket.getInputStream();
+				
+				//new Thread(new ClientHandler(clientSocket)).start();
+				new Thread(() -> {
+					try {
+						do {
+
+							// Recebe a resposta do servidor
+							byte[] serverMessage = new byte[100];
+							int bytesRead = inputBuffer.read(serverMessage);
+							System.out.println("loop recebimento mensagem");
+							//if (bytesRead == -1) {
+								//	break;
+								//}
+								
+								// Converte a resposta para string e exibe
+								String textReceived = new String(serverMessage, 0, bytesRead).trim();
+								System.out.println("Mensagem recebida: " + textReceived);
+								
+							} while (true);
+					
+					} catch (Exception e) {
+						System.out.println(e.getMessage());
+					}
+				}).start();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
