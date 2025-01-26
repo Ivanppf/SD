@@ -3,18 +3,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
-import java.util.Date;
 import java.util.List;
-import java.util.Random;
 
 public class Cliente {
 
@@ -57,7 +53,7 @@ public class Cliente {
 
 		Thread serverThread = new Thread(() -> {
 			try {
-				startServer(usuario.getPorta());
+				receberMensagens(usuario.getPorta());
 			} catch (Exception e) {
 				System.out.println(e.getMessage());
 			}
@@ -82,9 +78,18 @@ public class Cliente {
 					List<Usuario> usuarios = servidor.listarUsuarios();
 					usuarios.forEach(System.out::println);
 				} else if (escolha == 2) {
-					System.out.print("Digite o nome do usuário: ");
-					String nomeUsuario = KBinput.readLine();
-					Usuario novoUsuario = servidor.buscarUsuario(nomeUsuario);
+					continua = true;
+					Usuario novoUsuario = null;
+					while (continua) {
+						System.out.print("Digite o nome do usuário: ");
+						String nomeUsuario = KBinput.readLine();
+						novoUsuario = servidor.buscarUsuario(nomeUsuario);
+						if (novoUsuario == null) {
+							System.out.println("Usuário não encontrado!");
+							continue;
+						}
+						continua = false;
+					}
 					while (true) {
 						System.out.println("Digite a mensagem para enviar (ou 'sair' para encerrar): ");
 						String mensagem = KBinput.readLine();
@@ -104,6 +109,7 @@ public class Cliente {
 						enviarMensagemParaTodos(mensagem);
 					}
 				} else if (escolha == 4) {
+
 					break;
 				}
 
@@ -111,7 +117,7 @@ public class Cliente {
 				System.out.println(e.getMessage());
 			}
 		}
-
+serverThread.interrupt();
 		try {
 			KBinput.close();
 		} catch (IOException e) {
@@ -120,7 +126,8 @@ public class Cliente {
 
 	}
 
-	private static void startServer(int porta) throws IOException {
+	// trata a recepção de mensagens
+	private static void receberMensagens(int porta) throws IOException {
 		ServerSocket serverSocket = new ServerSocket(porta);
 		while (true) {
 			try {
@@ -128,7 +135,6 @@ public class Cliente {
 				InputStream inputBuffer = clientSocket.getInputStream();
 
 				new Thread(() -> {
-					// Handler para tratar a recepção de mensagens
 					try {
 						while (true) {
 							// Recebe a resposta do servidor
@@ -137,17 +143,20 @@ public class Cliente {
 
 							// Converte a resposta para string e exibe
 							String textReceived = new String(mensagemDoServidor, 0, bytesRead).trim();
+
 							System.out.println(">> " + textReceived);
 						}
 
 					} catch (Exception e) {
-						System.out.println(e.getMessage());
+						e.printStackTrace();
 					}
 				}).start();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			
 		}
+
 	}
 
 	private static void enviarMensagemParaTodos(String mensagem) throws RemoteException {
@@ -163,13 +172,15 @@ public class Cliente {
 		try {
 			Socket socket = new Socket(novoUsuario.getEnderecoIp(), novoUsuario.getPorta());
 			OutputStream outputBuffer = socket.getOutputStream();
-			
+
 			mensagem = usuario.getNome() + ": " + mensagem;
 			outputBuffer.write(mensagem.getBytes());
 			outputBuffer.flush();
+			socket.close();
 		} catch (Exception e) {
 			e.printStackTrace();
-		}
+		} 
+		
 	}
 
 }

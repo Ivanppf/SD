@@ -59,13 +59,6 @@ public class Servidor extends UnicastRemoteObject implements ServidorRemoto {
 
 	}
 
-	public void conectarComUsuario(Usuario u, String nome) {
-		// u.setPorta(8080);
-		
-		
-
-	}
-
 	public static void main(String[] args) throws RemoteException, MalformedURLException {
 
 		if (System.getSecurityManager() == null) {
