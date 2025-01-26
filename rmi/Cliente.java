@@ -20,6 +20,7 @@ public class Cliente {
 	private static ServerSocket serverSocket;
 	private static Socket clientSocket;
 	private static int msgSize;
+	private static Usuario usuario;
 
 	public static void main(String[] args) throws RemoteException, MalformedURLException, NotBoundException {
 
@@ -40,14 +41,16 @@ public class Cliente {
 		// escreve mensagem no servidor, chamando m�todo dele
 		// servidor.escreveMsg("Hello, fellows!!!!");
 		BufferedReader KBinput = new BufferedReader(new InputStreamReader(System.in));
-		Usuario usuario = new Usuario();
+		 usuario = new Usuario();
 
 		boolean continua = true;
 		while (continua) {
 			try {
 				System.out.print("Digite seu nome: ");
-				usuario.setNome(KBinput.readLine());
+				String nome = KBinput.readLine();
+				usuario.setNome(nome);
 				servidor.cadastrar(usuario);
+				usuario = servidor.buscarUsuario(nome);
 				continua = false;
 			} catch (Exception e) {
 				System.out.println(e.getMessage());
@@ -56,8 +59,7 @@ public class Cliente {
 
 		Thread serverThread = new Thread(() -> {
 			try {
-				Usuario u = servidor.buscarUsuario(usuario.getNome());
-				startServer(u.getPorta());
+				startServer(usuario.getPorta());
 			} catch (Exception e) {
 				System.out.println(e.getMessage());
 			}
@@ -94,6 +96,7 @@ public class Cliente {
 						if (message.equalsIgnoreCase("sair")) {
 							break;
 						}
+						message =  + message
 						outputBuffer.write(message.getBytes());
 						outputBuffer.flush();
 					}
@@ -119,8 +122,8 @@ public class Cliente {
 			try {
 				Socket clientSocket = serverSocket.accept();
 				InputStream inputBuffer = clientSocket.getInputStream();
-				
-				//new Thread(new ClientHandler(clientSocket)).start();
+
+				// new Thread(new ClientHandler(clientSocket)).start();
 				new Thread(() -> {
 					try {
 						do {
@@ -129,16 +132,16 @@ public class Cliente {
 							byte[] serverMessage = new byte[100];
 							int bytesRead = inputBuffer.read(serverMessage);
 							System.out.println("loop recebimento mensagem");
-							//if (bytesRead == -1) {
-								//	break;
-								//}
-								
-								// Converte a resposta para string e exibe
-								String textReceived = new String(serverMessage, 0, bytesRead).trim();
-								System.out.println("Mensagem recebida: " + textReceived);
-								
-							} while (true);
-					
+							// if (bytesRead == -1) {
+							// break;
+							// }
+
+							// Converte a resposta para string e exibe
+							String textReceived = new String(serverMessage, 0, bytesRead).trim();
+							System.out.println("Mensagem recebida: " + textReceived);
+
+						} while (true);
+
 					} catch (Exception e) {
 						System.out.println(e.getMessage());
 					}
