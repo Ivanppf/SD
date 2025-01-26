@@ -61,6 +61,8 @@ public class Servidor extends UnicastRemoteObject implements ServidorRemoto {
 
 	public void conectarComUsuario(Usuario u, String nome) {
 		// u.setPorta(8080);
+		
+		
 
 	}
 

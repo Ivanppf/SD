@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RMISecurityManager;
@@ -17,9 +18,8 @@ import java.util.Random;
 
 public class Cliente {
 
-	private static ServerSocket serverSocket;
-	private static Socket clientSocket;
-	private static int msgSize;
+	private static ServidorRemoto servidor;
+	private static final int msgSize = 100;
 	private static Usuario usuario;
 
 	public static void main(String[] args) throws RemoteException, MalformedURLException, NotBoundException {
@@ -36,10 +36,8 @@ public class Cliente {
 
 		String nomeRemoto = "//" + host + "/Servidor";
 
-		ServidorRemoto servidor = (ServidorRemoto) Naming.lookup(nomeRemoto);
+		servidor = (ServidorRemoto) Naming.lookup(nomeRemoto);
 
-		// escreve mensagem no servidor, chamando m�todo dele
-		// servidor.escreveMsg("Hello, fellows!!!!");
 		BufferedReader KBinput = new BufferedReader(new InputStreamReader(System.in));
 		usuario = new Usuario();
 
@@ -87,33 +85,39 @@ public class Cliente {
 					System.out.print("Digite o nome do usuário: ");
 					String nomeUsuario = KBinput.readLine();
 					Usuario novoUsuario = servidor.buscarUsuario(nomeUsuario);
-					Socket socket = new Socket(novoUsuario.getEnderecoIp(), novoUsuario.getPorta());
-					OutputStream outputBuffer = socket.getOutputStream();
-
 					while (true) {
 						System.out.println("Digite a mensagem para enviar (ou 'sair' para encerrar): ");
-						String message = KBinput.readLine();
-						if (message.equalsIgnoreCase("sair")) {
+						String mensagem = KBinput.readLine();
+						if (mensagem.equalsIgnoreCase("sair")) {
 							break;
 						}
-						message = usuario.getNome() + ": " + message;
-						outputBuffer.write(message.getBytes());
-						outputBuffer.flush();
+						enviarMensagem(novoUsuario, mensagem);
 					}
 
+				} else if (escolha == 3) {
+					while (true) {
+						System.out.println("Digite a mensagem para enviar (ou 'sair' para encerrar): ");
+						String mensagem = KBinput.readLine();
+						if (mensagem.equalsIgnoreCase("sair")) {
+							break;
+						}
+						enviarMensagemParaTodos(mensagem);
+					}
 				} else if (escolha == 4) {
 					break;
 				}
 
 			} catch (Exception e) {
-				// System.out.println(e.getMessage());
-				e.printStackTrace();
+				System.out.println(e.getMessage());
 			}
 		}
 
-		// recebe a data de hoje do servidor, executando m�todo l� nele
-		// Date dataDeHoje = servidor.dataDeHoje();
-		// System.out.println("A data/hora do servidor �: " + dataDeHoje.toString());
+		try {
+			KBinput.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	private static void startServer(int porta) throws IOException {
@@ -128,11 +132,11 @@ public class Cliente {
 					try {
 						while (true) {
 							// Recebe a resposta do servidor
-							byte[] serverMessage = new byte[100];
-							int bytesRead = inputBuffer.read(serverMessage);
+							byte[] mensagemDoServidor = new byte[msgSize];
+							int bytesRead = inputBuffer.read(mensagemDoServidor);
 
 							// Converte a resposta para string e exibe
-							String textReceived = new String(serverMessage, 0, bytesRead).trim();
+							String textReceived = new String(mensagemDoServidor, 0, bytesRead).trim();
 							System.out.println(">> " + textReceived);
 						}
 
@@ -143,6 +147,28 @@ public class Cliente {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+		}
+	}
+
+	private static void enviarMensagemParaTodos(String mensagem) throws RemoteException {
+		List<Usuario> usuarios = servidor.listarUsuarios();
+		for (Usuario usuario : usuarios) {
+			enviarMensagem(usuario, mensagem);
+		}
+
+	}
+
+	public static void enviarMensagem(Usuario novoUsuario, String mensagem) {
+
+		try {
+			Socket socket = new Socket(novoUsuario.getEnderecoIp(), novoUsuario.getPorta());
+			OutputStream outputBuffer = socket.getOutputStream();
+			
+			mensagem = usuario.getNome() + ": " + mensagem;
+			outputBuffer.write(mensagem.getBytes());
+			outputBuffer.flush();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
