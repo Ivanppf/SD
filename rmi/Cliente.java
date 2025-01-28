@@ -40,16 +40,42 @@ public class Cliente {
 		boolean continua = true;
 		while (continua) {
 			try {
-				System.out.print("Digite seu nome: ");
-				String nome = KBinput.readLine();
-				usuario.setNome(nome);
-				servidor.cadastrar(usuario);
-				usuario = servidor.buscarUsuario(nome);
+				System.out.println("""
+						1 - Entrar
+						2 - Cadastrar-se
+						->
+						""");
+				int escolha = Integer.parseInt(KBinput.readLine());
+				if (escolha == 1 || escolha == 2) {
+					System.out.print("Digite seu nome: ");
+					String nome = KBinput.readLine();
+
+					switch (escolha) {
+						case 1:
+							usuario = servidor.buscarUsuario(nome);
+							if (usuario == null) {
+								System.out.println("Usuário não encontrado!");
+								continue;
+							}
+							break;
+						case 2:
+							usuario = new Usuario();
+							usuario.setNome(nome);
+							servidor.cadastrar(usuario);
+							usuario = servidor.buscarUsuario(nome);
+							break;
+					}
+
+				} else {
+					System.out.println("Opção inválida");
+					continue;
+				}
 				continua = false;
 			} catch (Exception e) {
 				System.out.println(e.getMessage());
 			}
 		}
+		System.out.println("Bem-vindo(a)!");
 
 		Thread serverThread = new Thread(() -> {
 			try {
@@ -117,7 +143,7 @@ public class Cliente {
 				System.out.println(e.getMessage());
 			}
 		}
-serverThread.interrupt();
+		serverThread.interrupt();
 		try {
 			KBinput.close();
 		} catch (IOException e) {
@@ -154,7 +180,7 @@ serverThread.interrupt();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			
+
 		}
 
 	}
@@ -176,11 +202,10 @@ serverThread.interrupt();
 			mensagem = usuario.getNome() + ": " + mensagem;
 			outputBuffer.write(mensagem.getBytes());
 			outputBuffer.flush();
-			socket.close();
 		} catch (Exception e) {
 			e.printStackTrace();
-		} 
-		
+		}
+
 	}
 
 }
